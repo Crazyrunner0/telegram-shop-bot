@@ -315,6 +315,54 @@
             z-index: 1;
         }
 
+        /* Cart Send Button */
+        .cart-send-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 568px;
+            padding: 18px 32px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 35px rgba(72, 187, 120, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .cart-send-btn:hover {
+            transform: translateX(-50%) translateY(-3px);
+            box-shadow: 0 15px 45px rgba(72, 187, 120, 0.6);
+        }
+
+        .cart-send-btn:active {
+            transform: translateX(-50%) translateY(-1px);
+        }
+
         /* Floating animation */
         .floating {
             animation: float 6s ease-in-out infinite;
@@ -549,7 +597,7 @@
             });
         }
 
-        // Cart functionality (simplified)
+        // Cart functionality
         let cart = {};
 
         function addToCart(carId) {
@@ -574,6 +622,64 @@
 
             // Show notification
             tg.showAlert(`✅ ${car.name} добавлен в корзину!`);
+            
+            // Update cart button visibility
+            updateCartButton();
+        }
+
+        function updateCartButton() {
+            const cartArray = Object.values(cart);
+            const cartButton = document.getElementById('cartButton');
+            
+            if (cartArray.length > 0) {
+                if (!cartButton) {
+                    // Create cart button
+                    const button = document.createElement('button');
+                    button.id = 'cartButton';
+                    button.className = 'cart-send-btn';
+                    button.innerHTML = `
+                        <span>🛒 Отправить в корзину (${cartArray.length})</span>
+                    `;
+                    button.onclick = sendCartToBot;
+                    document.body.appendChild(button);
+                } else {
+                    const totalItems = cartArray.reduce((sum, item) => sum + item.quantity, 0);
+                    cartButton.innerHTML = `<span>🛒 Отправить в корзину (${totalItems})</span>`;
+                }
+            } else if (cartButton) {
+                cartButton.remove();
+            }
+        }
+
+        function sendCartToBot() {
+            const cartArray = Object.values(cart);
+            
+            if (cartArray.length === 0) {
+                tg.showAlert('Ваша корзина пуста!');
+                return;
+            }
+
+            const cartData = {
+                items: cartArray.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity
+                }))
+            };
+
+            // Haptic feedback
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('heavy');
+            }
+
+            // Send data to bot
+            tg.sendData(JSON.stringify(cartData));
+            
+            // Clear local cart
+            cart = {};
+            updateCartButton();
+            
+            // Show confirmation
+            tg.showAlert('✅ Товары отправлены в корзину! Проверьте бота.');
         }
 
         // Scroll animations
@@ -591,6 +697,7 @@
         // Initialize
         createParticles();
         renderCars();
+        updateCartButton();
 
         // Observe car cards for animation
         setTimeout(() => {
@@ -601,3 +708,5 @@
     </script>
 </body>
 </html>
+
+
