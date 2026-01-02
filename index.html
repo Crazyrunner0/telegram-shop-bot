@@ -648,18 +648,25 @@
                 return `${protocol}//${hostname}`;
             }
             
-            // Для Vercel и других хостингов - API обычно недоступен
+            // Для Vercel и других статических хостингов - API обычно недоступен
             // Используем fallback на sendData или укажите API URL вручную
-            if (hostname.includes('vercel.app') || hostname.includes('github.io')) {
+            if (hostname.includes('vercel.app') || 
+                hostname.includes('github.io') || 
+                hostname.includes('netlify.app') ||
+                hostname.includes('pages.dev')) {
                 // API не доступен на этих хостингах
                 // Нужно использовать ngrok или отдельный сервер
                 console.warn('API не доступен на этом хостинге. Используйте ngrok или укажите API URL.');
                 return null; // Вернет null, будет использован fallback
             }
             
-            // Для продакшена - API на том же домене
+            // Для продакшена - API на том же домене (если API там доступен)
+            // ВАЖНО: Это работает только если API действительно доступен на этом домене
             const origin = window.location.origin.replace(/\/$/, '');
-            return origin;
+            // Не возвращаем автоматически - пользователь должен явно указать API URL
+            // для безопасности и избежания ошибок
+            console.warn('API URL не указан явно. Используйте параметр ?api_url=... или fallback.');
+            return null;
         }
         
         let API_URL = getApiUrl();
@@ -939,10 +946,24 @@
 
         // Render cars
         function renderCars() {
-            const carsGrid = document.getElementById('carsGrid');
-            carsGrid.innerHTML = '';
+            try {
+                const carsGrid = document.getElementById('carsGrid');
+                if (!carsGrid) {
+                    addDebugLog('❌ Элемент carsGrid не найден', 'error');
+                    console.error('carsGrid element not found');
+                    return;
+                }
 
-            cars.forEach(car => {
+                if (!cars || cars.length === 0) {
+                    addDebugLog('❌ Массив cars пуст или не определен', 'error');
+                    console.error('Cars array is empty or undefined');
+                    return;
+                }
+
+                addDebugLog(`🔄 Рендеринг ${cars.length} автомобилей...`, 'info');
+                carsGrid.innerHTML = '';
+
+                cars.forEach(car => {
                 const carCard = document.createElement('div');
                 carCard.className = 'car-card';
                 carCard.innerHTML = `
@@ -985,8 +1006,14 @@
                         </div>
                     </div>
                 `;
-                carsGrid.appendChild(carCard);
-            });
+                    carsGrid.appendChild(carCard);
+                });
+
+                addDebugLog(`✅ Автомобили отрендерены: ${cars.length} шт.`, 'success');
+            } catch (error) {
+                addDebugLog(`❌ Ошибка рендеринга автомобилей: ${error.message}`, 'error');
+                console.error('Error rendering cars:', error);
+            }
         }
 
         // Cart functionality
@@ -1009,16 +1036,30 @@
 
             try {
                 // Send to API
-                if (!tg || !tg.initData) {
-                    console.error('No initData available');
+                if (!tg) {
+                    addDebugLog('❌ Telegram WebApp не доступен', 'error');
+                    return;
+                }
+                
+                if (!tg.initData) {
+                    addDebugLog('❌ InitData недоступен. Откройте WebApp через Telegram.', 'error');
                     if (tg && tg.showAlert) {
                         tg.showAlert('Ошибка: данные авторизации недоступны. Откройте через Telegram.');
                     }
                     return;
                 }
 
+                // Проверяем, что API_URL установлен
+                if (!API_URL) {
+                    addDebugLog('❌ API URL не настроен', 'error');
+                    if (tg && tg.showAlert) {
+                        tg.showAlert('Ошибка: API URL не настроен. Используйте fallback или настройте API.');
+                    }
+                    return;
+                }
+
                 addDebugLog(`📤 Отправка запроса: ${API_URL}/api/add-to-cart`, 'info');
-                addDebugLog(`InitData: ${tg.initData ? 'доступен' : 'недоступен'}`, tg.initData ? 'success' : 'warning');
+                addDebugLog(`InitData: ${tg.initData.substring(0, 30)}...`, 'info');
 
                 const response = await fetch(`${API_URL}/api/add-to-cart`, {
                     method: 'POST',
@@ -1138,17 +1179,43 @@
             rootMargin: '0px 0px -50px 0px'
         });
 
-        // Initialize
-        createParticles();
-        renderCars();
+        // Initialize when DOM is ready
+        function initializeApp() {
+            try {
+                // Create particles
+                createParticles();
+                
+                // Render cars
+                renderCars();
+                
+                // Observe car cards for animation
+                setTimeout(() => {
+                    const carCards = document.querySelectorAll('.car-card');
+                    if (carCards.length > 0) {
+                        carCards.forEach(card => {
+                            observer.observe(card);
+                        });
+                        addDebugLog(`✅ Отображено ${carCards.length} автомобилей`, 'success');
+                    } else {
+                        addDebugLog('⚠️ Автомобили не отображены. Проверьте функцию renderCars()', 'warning');
+                    }
+                }, 100);
+            } catch (error) {
+                addDebugLog(`❌ Ошибка инициализации: ${error.message}`, 'error');
+                console.error('Initialization error:', error);
+            }
+        }
 
-        // Observe car cards for animation
-        setTimeout(() => {
-            document.querySelectorAll('.car-card').forEach(card => {
-                observer.observe(card);
-            });
-        }, 100);
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            // DOM already ready
+            initializeApp();
+        }
     </script>
 </body>
 </html>
+
+
 
