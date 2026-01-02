@@ -484,23 +484,30 @@
         function getApiUrl() {
             // Если открыто через Telegram, используем тот же домен
             const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
             
             // Для локальной разработки
             if (hostname === 'localhost' || hostname === '127.0.0.1') {
                 return 'http://localhost:8080';
             }
             
+            // Для ngrok или других туннелей
+            // Если URL содержит ngrok, используем тот же домен
+            if (hostname.includes('ngrok') || hostname.includes('ngrok-free')) {
+                return `${protocol}//${hostname}`;
+            }
+            
             // Для продакшена - API на том же домене
-            // Или используйте переменную окружения/конфигурацию
             const origin = window.location.origin.replace(/\/$/, '');
             
-            // Если API на другом домене, укажите здесь:
+            // ВАЖНО: Если API на другом домене, раскомментируйте и укажите:
             // return 'https://your-api-domain.com';
             
             return origin;
         }
         
         const API_URL = getApiUrl();
+        console.log('API URL configured:', API_URL);
         
         // Debug: Check if tg is available
         console.log('Telegram WebApp initialized:', !!tg);
@@ -519,36 +526,56 @@
         async function loadCartFromServer() {
             try {
                 if (!tg || !tg.initData) {
-                    console.log('No initData available');
+                    console.log('No initData available - skipping cart load');
                     return;
                 }
+                
+                console.log(`Loading cart from: ${API_URL}/api/get-cart`);
                 
                 const response = await fetch(`${API_URL}/api/get-cart`, {
                     method: 'GET',
                     headers: {
                         'Authorization': tg.initData,
-                        'X-Telegram-Init-Data': tg.initData
+                        'X-Telegram-Init-Data': tg.initData,
+                        'ngrok-skip-browser-warning': 'true'
                     }
                 });
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.items && data.items.length > 0) {
-                        // Update local cart
-                        cart = {};
-                        data.items.forEach(item => {
-                            cart[item.id] = {
-                                id: item.id,
-                                name: item.name,
-                                price: item.price,
-                                quantity: item.quantity
-                            };
-                        });
-                        updateMainButton(data.total, data.itemsCount);
-                    }
+                console.log('Cart load response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error loading cart:', response.status, errorText.substring(0, 200));
+                    return;
+                }
+                
+                const responseText = await response.text();
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (jsonError) {
+                    console.error('Failed to parse cart JSON:', jsonError);
+                    console.error('Response was:', responseText.substring(0, 200));
+                    return;
+                }
+                
+                if (data.success && data.items && data.items.length > 0) {
+                    // Update local cart
+                    cart = {};
+                    data.items.forEach(item => {
+                        cart[item.id] = {
+                            id: item.id,
+                            name: item.name,
+                            price: item.price,
+                            quantity: item.quantity
+                        };
+                    });
+                    updateMainButton(data.total, data.itemsCount);
+                    console.log('Cart loaded:', data.itemsCount, 'items');
                 }
             } catch (error) {
                 console.error('Error loading cart:', error);
+                console.error('Error details:', error.message, error.stack);
             }
         }
         
@@ -710,16 +737,22 @@
                 // Send to API
                 if (!tg || !tg.initData) {
                     console.error('No initData available');
-                    tg.showAlert('Ошибка: данные авторизации недоступны');
+                    if (tg && tg.showAlert) {
+                        tg.showAlert('Ошибка: данные авторизации недоступны. Откройте через Telegram.');
+                    }
                     return;
                 }
+
+                console.log(`Sending request to: ${API_URL}/api/add-to-cart`);
+                console.log('InitData available:', !!tg.initData);
 
                 const response = await fetch(`${API_URL}/api/add-to-cart`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': tg.initData,
-                        'X-Telegram-Init-Data': tg.initData
+                        'X-Telegram-Init-Data': tg.initData,
+                        'ngrok-skip-browser-warning': 'true' // Для ngrok
                     },
                     body: JSON.stringify({
                         productId: carId,
@@ -727,41 +760,89 @@
                     })
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        // Update local cart
-                        if (cart[carId]) {
-                            cart[carId].quantity += 1;
-                        } else {
-                            cart[carId] = {
-                                id: carId,
-                                name: car.name,
-                                price: car.price,
-                                quantity: 1
-                            };
-                        }
-                        
-                        // Update MainButton
-                        updateMainButton(data.cartTotal, data.itemsCount);
-                        
-                        // Show notification
-                        if (tg && tg.showAlert) {
-                            tg.showAlert(`✅ ${car.name} добавлен в корзину!`);
-                        }
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                // Сначала читаем как текст, чтобы увидеть реальный ответ
+                const responseText = await response.text();
+                console.log('Response text:', responseText.substring(0, 200));
+
+                if (!response.ok) {
+                    // Сервер вернул ошибку (404, 500 и т.д.)
+                    console.error('Server error:', response.status, responseText);
+                    
+                    let errorMessage = `Ошибка сервера: ${response.status}`;
+                    if (response.status === 404) {
+                        errorMessage = 'API не найден. Проверьте URL сервера.';
+                    } else if (response.status === 500) {
+                        errorMessage = 'Ошибка на сервере. Проверьте логи бота.';
+                    } else if (response.status === 401) {
+                        errorMessage = 'Ошибка авторизации. Проверьте initData.';
+                    }
+                    
+                    if (tg && tg.showAlert) {
+                        tg.showAlert(`❌ ${errorMessage}`);
                     } else {
-                        throw new Error(data.error || 'Unknown error');
+                        alert(`❌ ${errorMessage}`);
+                    }
+                    return;
+                }
+
+                // Пытаемся распарсить JSON
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (jsonError) {
+                    console.error('Failed to parse JSON:', jsonError);
+                    console.error('Response was:', responseText);
+                    if (tg && tg.showAlert) {
+                        tg.showAlert('❌ Сервер вернул неверный формат данных. Проверьте API.');
+                    } else {
+                        alert('❌ Сервер вернул неверный формат данных.');
+                    }
+                    return;
+                }
+
+                if (data.success) {
+                    // Update local cart
+                    if (cart[carId]) {
+                        cart[carId].quantity += 1;
+                    } else {
+                        cart[carId] = {
+                            id: carId,
+                            name: car.name,
+                            price: car.price,
+                            quantity: 1
+                        };
+                    }
+                    
+                    // Update MainButton
+                    updateMainButton(data.cartTotal, data.itemsCount);
+                    
+                    // Show notification
+                    if (tg && tg.showAlert) {
+                        tg.showAlert(`✅ ${car.name} добавлен в корзину!`);
                     }
                 } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Server error');
+                    throw new Error(data.error || 'Unknown error');
                 }
             } catch (error) {
                 console.error('Error adding to cart:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                
+                let errorMessage = error.message || 'Неизвестная ошибка';
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorMessage = 'Не удалось подключиться к серверу. Проверьте, что API сервер запущен.';
+                }
+                
                 if (tg && tg.showAlert) {
-                    tg.showAlert(`❌ Ошибка: ${error.message}`);
+                    tg.showAlert(`❌ ${errorMessage}`);
                 } else {
-                    alert(`❌ Ошибка: ${error.message}`);
+                    alert(`❌ ${errorMessage}`);
                 }
             }
         }
@@ -794,5 +875,3 @@
     </script>
 </body>
 </html>
-
-
