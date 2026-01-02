@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚗 Автомобили</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+            background-attachment: fixed;
+            color: #ffffff;
+            padding: 20px 16px 120px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .cars-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .car-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .car-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .car-image-container {
+            width: 100%;
+            height: 220px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .car-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .car-card:hover .car-image {
+            transform: scale(1.15);
+        }
+
+        .car-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            z-index: 10;
+        }
+
+        .car-info {
+            padding: 20px;
+        }
+
+        .car-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .car-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a202c;
+            line-height: 1.2;
+        }
+
+        .car-year {
+            font-size: 14px;
+            color: #718096;
+            font-weight: 600;
+            background: #f7fafc;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+
+        .car-specs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .spec-icon {
+            font-size: 16px;
+        }
+
+        .car-price-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 2px solid #e2e8f0;
+            margin-bottom: 16px;
+        }
+
+        .car-price {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .car-price-old {
+            font-size: 18px;
+            color: #a0aec0;
+            text-decoration: line-through;
+            font-weight: 600;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .add-to-cart-btn:active {
+            transform: translateY(0);
+        }
+
+        .cart-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 24px 16px;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+            display: none;
+            border-top-left-radius: 28px;
+            border-top-right-radius: 28px;
+            z-index: 1000;
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .cart-section.visible {
+            display: block;
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 3px solid #e2e8f0;
+        }
+
+        .cart-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cart-items-count {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .cart-items {
+            margin-bottom: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .cart-items::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .cart-items::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .cart-items::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: #f7fafc;
+            border-radius: 18px;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .cart-item:hover {
+            background: #edf2f7;
+            border-color: #667eea;
+            transform: translateX(6px);
+        }
+
+        .cart-item-info {
+            flex: 1;
+            margin-right: 16px;
+        }
+
+        .cart-item-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 6px;
+        }
+
+        .cart-item-specs {
+            font-size: 12px;
+            color: #718096;
+            font-weight: 600;
+        }
+
+        .cart-item-price {
+            font-size: 18px;
+            font-weight: 800;
+            color: #667eea;
+            margin-left: 16px;
+            min-width: 90px;
+            text-align: right;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 0 16px;
+        }
+
+        .quantity-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .quantity-btn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 18px rgba(102, 126, 234, 0.4);
+        }
+
+        .quantity-btn:active {
+            transform: scale(0.95);
+        }
+
+        .quantity-value {
+            min-width: 45px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 18px;
+            color: #1a202c;
+        }
+
+        .cart-total {
+            font-size: 26px;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 18px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(72, 187, 120, 0.5);
+        }
+
+        .checkout-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .empty-cart-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .empty-cart-text {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 26px;
+            }
+
+            .car-name {
+                font-size: 20px;
+            }
+
+            .car-price {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Автомобили</h1>
+            <p>Выберите автомобиль своей мечты</p>
+        </div>
+        <div class="cars-grid" id="carsGrid"></div>
+        <div class="empty-cart" id="emptyCart" style="display: none;">
+            <div class="empty-cart-icon">🚗</div>
+            <div class="empty-cart-text">Ваша корзина пуста</div>
+        </div>
+    </div>
+
+    <div class="cart-section" id="cartSection">
+        <div class="cart-header">
+            <div class="cart-title">🛒 Корзина</div>
+            <div class="cart-items-count" id="cartItemsCount">0 авто</div>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-total" id="cartTotal">Итого: $0.00</div>
+        <button class="checkout-btn" id="checkoutBtn">
+            💳 Оформить заказ
+        </button>
+    </div>
+
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Car data
+        const cars = [
+            { 
+                id: 1, 
+                name: "BMW M5", 
+                year: 2023,
+                price: 89999.99,
+                oldPrice: 99999.99,
+                image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop",
+                badge: "Популярный",
+                specs: {
+                    engine: "4.4L V8",
+                    power: "600 л.с.",
+                    transmission: "Автомат",
+                    drive: "Полный"
+                }
+            },
+            { 
+                id: 2, 
+                name: "Mercedes-Benz AMG GT", 
+                year: 2024,
+                price: 129999.99,
+                oldPrice: null,
+                image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop",
+                badge: "Новинка",
+                specs: {
+                    engine: "4.0L V8",
+                    power: "630 л.с.",
+                    transmission: "Автомат",
+                    drive: "Задний"
+                }
+            },
+            { 
+                id: 3, 
+                name: "Audi RS6", 
+                year: 2023,
+                price: 109999.99,
+                oldPrice: 119999.99,
+                image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=600&fit=crop",
+                badge: "Скидка",
+                specs: {
+                    engine: "4.0L V8",
+                    power: "600 л.с.",
+                    transmission: "Автомат",
+                    drive: "Полный"
+                }
+            },
+            { 
+                id: 4, 
+                name: "Porsche 911 Turbo", 
+                year: 2024,
+                price: 199999.99,
+                oldPrice: null,
+                image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=600&fit=crop",
+                badge: "Премиум",
+                specs: {
+                    engine: "3.8L Flat-6",
+                    power: "650 л.с.",
+                    transmission: "Автомат",
+                    drive: "Полный"
+                }
+            }
+        ];
+
+        // Cart state
+        let cart = {};
+
+        // Initialize cars display
+        function renderCars() {
+            const carsGrid = document.getElementById('carsGrid');
+            carsGrid.innerHTML = '';
+
+            cars.forEach(car => {
+                const carCard = document.createElement('div');
+                carCard.className = 'car-card';
+                carCard.innerHTML = `
+                    <div class="car-image-container">
+                        <img src="${car.image}" alt="${car.name}" class="car-image"
+                             onerror="this.src='https://via.placeholder.com/800x600/667eea/ffffff?text=${encodeURIComponent(car.name)}'">
+                        ${car.badge ? `<div class="car-badge">${car.badge}</div>` : ''}
+                    </div>
+                    <div class="car-info">
+                        <div class="car-header">
+                            <div class="car-name">${car.name}</div>
+                            <div class="car-year">${car.year}</div>
+                        </div>
+                        <div class="car-specs">
+                            <div class="spec-item">
+                                <span class="spec-icon">⚙️</span>
+                                <span>${car.specs.engine}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-icon">💨</span>
+                                <span>${car.specs.power}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-icon">🔧</span>
+                                <span>${car.specs.transmission}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-icon">🚗</span>
+                                <span>${car.specs.drive}</span>
+                            </div>
+                        </div>
+                        <div class="car-price-section">
+                            <div>
+                                <div class="car-price">$${car.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                                ${car.oldPrice ? `<div class="car-price-old">$${car.oldPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>` : ''}
+                            </div>
+                        </div>
+                        <button class="add-to-cart-btn" onclick="addToCart(${car.id})">
+                            ➕ Добавить в корзину
+                        </button>
+                    </div>
+                `;
+                carsGrid.appendChild(carCard);
+            });
+        }
+
+        // Add car to cart
+        function addToCart(carId) {
+            if (cart[carId]) {
+                cart[carId].quantity += 1;
+            } else {
+                const car = cars.find(c => c.id === carId);
+                cart[carId] = {
+                    id: carId,
+                    name: car.name,
+                    year: car.year,
+                    price: car.price,
+                    specs: car.specs,
+                    quantity: 1
+                };
+            }
+            updateCart();
+            
+            // Haptic feedback
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+        }
+
+        // Remove car from cart
+        function removeFromCart(carId) {
+            if (cart[carId]) {
+                cart[carId].quantity -= 1;
+                if (cart[carId].quantity <= 0) {
+                    delete cart[carId];
+                }
+            }
+            updateCart();
+            
+            // Haptic feedback
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+
+        // Update cart display
+        function updateCart() {
+            const cartSection = document.getElementById('cartSection');
+            const cartItems = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotal');
+            const cartItemsCount = document.getElementById('cartItemsCount');
+            const emptyCart = document.getElementById('emptyCart');
+
+            const cartArray = Object.values(cart);
+            const totalItems = cartArray.reduce((sum, item) => sum + item.quantity, 0);
+            
+            if (cartArray.length === 0) {
+                cartSection.classList.remove('visible');
+                emptyCart.style.display = 'block';
+                return;
+            }
+
+            emptyCart.style.display = 'none';
+            cartSection.classList.add('visible');
+            cartItems.innerHTML = '';
+
+            let total = 0;
+
+            cartArray.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+
+                const cartItem = document.createElement('div');
+                cartItem.className = 'cart-item';
+                cartItem.innerHTML = `
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.name} ${item.year}</div>
+                        <div class="cart-item-specs">${item.specs.engine} • ${item.specs.power}</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn" onclick="removeFromCart(${item.id})">−</button>
+                        <span class="quantity-value">${item.quantity}</span>
+                        <button class="quantity-btn" onclick="addToCart(${item.id})">+</button>
+                    </div>
+                    <div class="cart-item-price">$${itemTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                `;
+                cartItems.appendChild(cartItem);
+            });
+
+            cartTotal.textContent = `Итого: $${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            cartItemsCount.textContent = `${totalItems} ${totalItems === 1 ? 'авто' : totalItems < 5 ? 'авто' : 'авто'}`;
+        }
+
+        // Checkout handler
+        document.getElementById('checkoutBtn').addEventListener('click', function() {
+            const cartArray = Object.values(cart);
+            
+            if (cartArray.length === 0) {
+                tg.showAlert('Ваша корзина пуста!');
+                return;
+            }
+
+            const orderData = {
+                items: cartArray.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity
+                }))
+            };
+
+            // Haptic feedback
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('heavy');
+            }
+
+            // Send data to bot
+            tg.sendData(JSON.stringify(orderData));
+            
+            // Show confirmation
+            tg.showAlert('✅ Заказ отправлен! Проверьте сообщения.');
+            
+            // Clear cart after order
+            cart = {};
+            updateCart();
+        });
+
+        // Initialize on page load
+        renderCars();
+        updateCart();
+    </script>
+</body>
+</html>
