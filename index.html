@@ -450,7 +450,7 @@
 </head>
 <body>
     <div class="particles" id="particles"></div>
-    
+
     <div class="container">
         <div class="header floating">
             <h1>🚗 ПРЕМИУМ АВТОМОБИЛИ</h1>
@@ -463,10 +463,24 @@
     <script>
         // Initialize Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-        tg.setHeaderColor('#0f0c29');
-        tg.setBackgroundColor('#0f0c29');
+        
+        // Wait for WebApp to be ready
+        if (tg && tg.ready) {
+            tg.ready();
+        }
+        if (tg && tg.expand) {
+            tg.expand();
+        }
+        if (tg && tg.setHeaderColor) {
+            tg.setHeaderColor('#0f0c29');
+        }
+        if (tg && tg.setBackgroundColor) {
+            tg.setBackgroundColor('#0f0c29');
+        }
+        
+        // Debug: Check if tg is available
+        console.log('Telegram WebApp initialized:', !!tg);
+        console.log('sendData available:', !!(tg && tg.sendData));
 
         // Create particles
         function createParticles() {
@@ -632,18 +646,26 @@
             const cartButton = document.getElementById('cartButton');
             
             if (cartArray.length > 0) {
+                const totalItems = cartArray.reduce((sum, item) => sum + item.quantity, 0);
+                
                 if (!cartButton) {
                     // Create cart button
                     const button = document.createElement('button');
                     button.id = 'cartButton';
                     button.className = 'cart-send-btn';
-                    button.innerHTML = `
-                        <span>🛒 Отправить в корзину (${cartArray.length})</span>
-                    `;
-                    button.onclick = sendCartToBot;
+                    button.innerHTML = `<span>🛒 Отправить в корзину (${totalItems})</span>`;
+                    
+                    // Add event listener
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        sendCartToBot();
+                        return false;
+                    });
+                    
                     document.body.appendChild(button);
+                    console.log('Cart button created');
                 } else {
-                    const totalItems = cartArray.reduce((sum, item) => sum + item.quantity, 0);
                     cartButton.innerHTML = `<span>🛒 Отправить в корзину (${totalItems})</span>`;
                 }
             } else if (cartButton) {
@@ -652,34 +674,74 @@
         }
 
         function sendCartToBot() {
-            const cartArray = Object.values(cart);
-            
-            if (cartArray.length === 0) {
-                tg.showAlert('Ваша корзина пуста!');
-                return;
+            try {
+                // Check if tg is available
+                if (!tg || !tg.sendData) {
+                    console.error('Telegram WebApp not available');
+                    alert('Ошибка: Telegram WebApp не доступен. Убедитесь, что вы открыли страницу через Telegram.');
+                    return;
+                }
+
+                const cartArray = Object.values(cart);
+                
+                if (cartArray.length === 0) {
+                    if (tg.showAlert) {
+                        tg.showAlert('Ваша корзина пуста!');
+                    } else {
+                        alert('Ваша корзина пуста!');
+                    }
+                    return;
+                }
+
+                const cartData = {
+                    items: cartArray.map(item => ({
+                        id: item.id,
+                        quantity: item.quantity
+                    }))
+                };
+
+                const jsonData = JSON.stringify(cartData);
+                console.log('Sending cart data:', cartData);
+                console.log('JSON string:', jsonData);
+
+                // Haptic feedback
+                if (tg.HapticFeedback && tg.HapticFeedback.impactOccurred) {
+                    tg.HapticFeedback.impactOccurred('heavy');
+                }
+
+                // Send data to bot
+                try {
+                    tg.sendData(jsonData);
+                    console.log('Data sent successfully via tg.sendData');
+                    
+                    // Clear local cart
+                    cart = {};
+                    updateCartButton();
+                    
+                    // Show confirmation
+                    setTimeout(() => {
+                        if (tg.showAlert) {
+                            tg.showAlert('✅ Товары отправлены в корзину! Проверьте бота.');
+                        } else {
+                            alert('✅ Товары отправлены в корзину! Проверьте бота.');
+                        }
+                    }, 100);
+                } catch (error) {
+                    console.error('Error sending data:', error);
+                    if (tg.showAlert) {
+                        tg.showAlert('❌ Ошибка отправки: ' + error.message);
+                    } else {
+                        alert('❌ Ошибка отправки: ' + error.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Error in sendCartToBot:', error);
+                if (tg && tg.showAlert) {
+                    tg.showAlert('❌ Произошла ошибка. Попробуйте еще раз.');
+                } else {
+                    alert('❌ Произошла ошибка. Попробуйте еще раз.');
+                }
             }
-
-            const cartData = {
-                items: cartArray.map(item => ({
-                    id: item.id,
-                    quantity: item.quantity
-                }))
-            };
-
-            // Haptic feedback
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('heavy');
-            }
-
-            // Send data to bot
-            tg.sendData(JSON.stringify(cartData));
-            
-            // Clear local cart
-            cart = {};
-            updateCartButton();
-            
-            // Show confirmation
-            tg.showAlert('✅ Товары отправлены в корзину! Проверьте бота.');
         }
 
         // Scroll animations
@@ -708,5 +770,4 @@
     </script>
 </body>
 </html>
-
 
