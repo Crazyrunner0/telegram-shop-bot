@@ -478,9 +478,92 @@
             tg.setBackgroundColor('#0f0c29');
         }
         
+        // API URL - определяется автоматически
+        // Для локальной разработки используйте ngrok или другой туннель
+        // Для продакшена API должен быть на том же домене или настроен CORS
+        function getApiUrl() {
+            // Если открыто через Telegram, используем тот же домен
+            const hostname = window.location.hostname;
+            
+            // Для локальной разработки
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://localhost:8080';
+            }
+            
+            // Для продакшена - API на том же домене
+            // Или используйте переменную окружения/конфигурацию
+            const origin = window.location.origin.replace(/\/$/, '');
+            
+            // Если API на другом домене, укажите здесь:
+            // return 'https://your-api-domain.com';
+            
+            return origin;
+        }
+        
+        const API_URL = getApiUrl();
+        
         // Debug: Check if tg is available
         console.log('Telegram WebApp initialized:', !!tg);
-        console.log('sendData available:', !!(tg && tg.sendData));
+        console.log('API URL:', API_URL);
+        
+        // Setup MainButton
+        if (tg && tg.MainButton) {
+            tg.MainButton.setText('🛒 Перейти в корзину');
+            tg.MainButton.onClick(() => {
+                // Close WebApp and let user see cart in bot
+                tg.close();
+            });
+        }
+        
+        // Load cart from server on page load
+        async function loadCartFromServer() {
+            try {
+                if (!tg || !tg.initData) {
+                    console.log('No initData available');
+                    return;
+                }
+                
+                const response = await fetch(`${API_URL}/api/get-cart`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': tg.initData,
+                        'X-Telegram-Init-Data': tg.initData
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.items && data.items.length > 0) {
+                        // Update local cart
+                        cart = {};
+                        data.items.forEach(item => {
+                            cart[item.id] = {
+                                id: item.id,
+                                name: item.name,
+                                price: item.price,
+                                quantity: item.quantity
+                            };
+                        });
+                        updateMainButton(data.total, data.itemsCount);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading cart:', error);
+            }
+        }
+        
+        // Update MainButton
+        function updateMainButton(total, itemsCount) {
+            if (tg && tg.MainButton) {
+                if (itemsCount > 0) {
+                    const totalStr = total.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    tg.MainButton.setText(`🛒 Корзина: ${itemsCount} товаров на $${totalStr}`);
+                    tg.MainButton.show();
+                } else {
+                    tg.MainButton.hide();
+                }
+            }
+        }
 
         // Create particles
         function createParticles() {
@@ -614,135 +697,77 @@
         // Cart functionality
         let cart = {};
 
-        function addToCart(carId) {
+        async function addToCart(carId) {
             const car = cars.find(c => c.id === carId);
             if (!car) return;
 
-            if (cart[carId]) {
-                cart[carId].quantity += 1;
-            } else {
-                cart[carId] = {
-                    id: carId,
-                    name: car.name,
-                    price: car.price,
-                    quantity: 1
-                };
-            }
-
-            // Haptic feedback
-            if (tg.HapticFeedback) {
+            // Visual feedback
+            if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('medium');
             }
 
-            // Show notification
-            tg.showAlert(`✅ ${car.name} добавлен в корзину!`);
-            
-            // Update cart button visibility
-            updateCartButton();
-        }
-
-        function updateCartButton() {
-            const cartArray = Object.values(cart);
-            const cartButton = document.getElementById('cartButton');
-            
-            if (cartArray.length > 0) {
-                const totalItems = cartArray.reduce((sum, item) => sum + item.quantity, 0);
-                
-                if (!cartButton) {
-                    // Create cart button
-                    const button = document.createElement('button');
-                    button.id = 'cartButton';
-                    button.className = 'cart-send-btn';
-                    button.innerHTML = `<span>🛒 Отправить в корзину (${totalItems})</span>`;
-                    
-                    // Add event listener
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        sendCartToBot();
-                        return false;
-                    });
-                    
-                    document.body.appendChild(button);
-                    console.log('Cart button created');
-                } else {
-                    cartButton.innerHTML = `<span>🛒 Отправить в корзину (${totalItems})</span>`;
-                }
-            } else if (cartButton) {
-                cartButton.remove();
-            }
-        }
-
-        function sendCartToBot() {
             try {
-                // Check if tg is available
-                if (!tg || !tg.sendData) {
-                    console.error('Telegram WebApp not available');
-                    alert('Ошибка: Telegram WebApp не доступен. Убедитесь, что вы открыли страницу через Telegram.');
+                // Send to API
+                if (!tg || !tg.initData) {
+                    console.error('No initData available');
+                    tg.showAlert('Ошибка: данные авторизации недоступны');
                     return;
                 }
 
-                const cartArray = Object.values(cart);
-                
-                if (cartArray.length === 0) {
-                    if (tg.showAlert) {
-                        tg.showAlert('Ваша корзина пуста!');
-                    } else {
-                        alert('Ваша корзина пуста!');
-                    }
-                    return;
-                }
+                const response = await fetch(`${API_URL}/api/add-to-cart`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': tg.initData,
+                        'X-Telegram-Init-Data': tg.initData
+                    },
+                    body: JSON.stringify({
+                        productId: carId,
+                        quantity: 1
+                    })
+                });
 
-                const cartData = {
-                    items: cartArray.map(item => ({
-                        id: item.id,
-                        quantity: item.quantity
-                    }))
-                };
-
-                const jsonData = JSON.stringify(cartData);
-                console.log('Sending cart data:', cartData);
-                console.log('JSON string:', jsonData);
-
-                // Haptic feedback
-                if (tg.HapticFeedback && tg.HapticFeedback.impactOccurred) {
-                    tg.HapticFeedback.impactOccurred('heavy');
-                }
-
-                // Send data to bot
-                try {
-                    tg.sendData(jsonData);
-                    console.log('Data sent successfully via tg.sendData');
-                    
-                    // Clear local cart
-                    cart = {};
-                    updateCartButton();
-                    
-                    // Show confirmation
-                    setTimeout(() => {
-                        if (tg.showAlert) {
-                            tg.showAlert('✅ Товары отправлены в корзину! Проверьте бота.');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        // Update local cart
+                        if (cart[carId]) {
+                            cart[carId].quantity += 1;
                         } else {
-                            alert('✅ Товары отправлены в корзину! Проверьте бота.');
+                            cart[carId] = {
+                                id: carId,
+                                name: car.name,
+                                price: car.price,
+                                quantity: 1
+                            };
                         }
-                    }, 100);
-                } catch (error) {
-                    console.error('Error sending data:', error);
-                    if (tg.showAlert) {
-                        tg.showAlert('❌ Ошибка отправки: ' + error.message);
+                        
+                        // Update MainButton
+                        updateMainButton(data.cartTotal, data.itemsCount);
+                        
+                        // Show notification
+                        if (tg && tg.showAlert) {
+                            tg.showAlert(`✅ ${car.name} добавлен в корзину!`);
+                        }
                     } else {
-                        alert('❌ Ошибка отправки: ' + error.message);
+                        throw new Error(data.error || 'Unknown error');
                     }
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Server error');
                 }
             } catch (error) {
-                console.error('Error in sendCartToBot:', error);
+                console.error('Error adding to cart:', error);
                 if (tg && tg.showAlert) {
-                    tg.showAlert('❌ Произошла ошибка. Попробуйте еще раз.');
+                    tg.showAlert(`❌ Ошибка: ${error.message}`);
                 } else {
-                    alert('❌ Произошла ошибка. Попробуйте еще раз.');
+                    alert(`❌ Ошибка: ${error.message}`);
                 }
             }
         }
+
+        // Load cart on page load
+        loadCartFromServer();
 
         // Scroll animations
         const observer = new IntersectionObserver((entries) => {
@@ -759,7 +784,6 @@
         // Initialize
         createParticles();
         renderCars();
-        updateCartButton();
 
         // Observe car cards for animation
         setTimeout(() => {
@@ -769,8 +793,6 @@
         }, 100);
     </script>
 </body>
-</html>
-
 </html>
 
 
