@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚗 Автомобильный Разработчик</title>
+    <title>🚗 Премиум Автомобили</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -14,7 +14,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             background-attachment: fixed;
             color: #ffffff;
             padding: 0;
@@ -28,35 +28,74 @@
             padding: 20px 16px;
         }
 
-        /* Hero Section */
-        .hero {
+        /* Header */
+        .header {
             text-align: center;
-            padding: 40px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 30px;
+            padding: 30px 20px;
             margin-bottom: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: fadeInUp 0.8s ease;
             position: relative;
-            overflow: hidden;
         }
 
-        .hero::before {
-            content: '🚗';
-            position: absolute;
-            font-size: 200px;
-            opacity: 0.05;
-            top: -50px;
-            right: -50px;
-            animation: float 6s ease-in-out infinite;
+        .header h1 {
+            font-size: 42px;
+            font-weight: 900;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff 0%, #a8edea 50%, #fed6e3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+            letter-spacing: 2px;
+            animation: glow 3s ease-in-out infinite;
         }
+
+        @keyframes glow {
+            0%, 100% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.2);
+            }
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        /* Cars Grid */
+        .cars-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .car-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            animation: fadeInUp 0.6s ease;
+            animation-fill-mode: both;
+        }
+
+        .car-card:nth-child(1) { animation-delay: 0.1s; }
+        .car-card:nth-child(2) { animation-delay: 0.2s; }
+        .car-card:nth-child(3) { animation-delay: 0.3s; }
+        .car-card:nth-child(4) { animation-delay: 0.4s; }
 
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(40px);
             }
             to {
                 opacity: 1;
@@ -64,197 +103,31 @@
             }
         }
 
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-20px) rotate(10deg);
-            }
-        }
-
-        .avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 50px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            animation: pulse 2s infinite;
-            position: relative;
-            z-index: 1;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-        }
-
-        .hero h1 {
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero .title {
-            font-size: 18px;
-            opacity: 0.9;
-            margin-bottom: 15px;
-            font-weight: 600;
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero .tagline {
-            font-size: 14px;
-            opacity: 0.8;
-            line-height: 1.6;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Section */
-        .section {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            border-radius: 25px;
-            padding: 25px 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: fadeInUp 0.8s ease;
-            animation-fill-mode: both;
-        }
-
-        .section:nth-child(2) { animation-delay: 0.1s; }
-        .section:nth-child(3) { animation-delay: 0.2s; }
-        .section:nth-child(4) { animation-delay: 0.3s; }
-        .section:nth-child(5) { animation-delay: 0.4s; }
-        .section:nth-child(6) { animation-delay: 0.5s; }
-
-        .section-title {
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        /* About */
-        .about-text {
-            font-size: 15px;
-            line-height: 1.8;
-            opacity: 0.95;
-        }
-
-        /* Stats */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .stat-item {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .stat-item:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .stat-number {
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 5px;
-            background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.9;
-            font-weight: 600;
-        }
-
-        /* Skills */
-        .skill-item {
-            margin-bottom: 20px;
-        }
-
-        .skill-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .skill-bar {
-            height: 12px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .skill-progress {
+        .car-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            transition: width 1s ease;
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s;
+            z-index: 1;
         }
 
-        /* Portfolio - Cars */
-        .cars-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        .car-card {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            cursor: pointer;
+        .car-card:hover::before {
+            left: 100%;
         }
 
         .car-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.3);
-            border-color: rgba(255, 255, 255, 0.5);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .car-image-container {
             width: 100%;
-            height: 180px;
+            height: 250px;
             position: relative;
             overflow: hidden;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -264,165 +137,207 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.5s ease;
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .car-card:hover .car-image {
-            transform: scale(1.1);
+            transform: scale(1.2) rotate(2deg);
         }
 
         .car-badge {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            background: rgba(255, 107, 107, 0.9);
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
             color: white;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: 800;
             text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5);
             z-index: 10;
+            letter-spacing: 1px;
+            animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         .car-info {
-            padding: 18px;
+            padding: 25px;
+            position: relative;
+            z-index: 2;
         }
 
         .car-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .car-name {
-            font-size: 20px;
-            font-weight: 800;
+            font-size: 26px;
+            font-weight: 900;
             color: #ffffff;
             line-height: 1.2;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .car-year {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.7);
-            font-weight: 600;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 12px;
-            border-radius: 12px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 16px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
         }
 
         .car-specs {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            font-size: 12px;
-            opacity: 0.9;
+            margin-bottom: 20px;
         }
 
         .spec-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 12px;
             display: flex;
             align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .spec-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .spec-icon {
+            font-size: 18px;
+        }
+
+        .car-price-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            margin-top: 15px;
+        }
+
+        .price-container {
+            display: flex;
+            flex-direction: column;
             gap: 5px;
         }
 
-        .car-description {
-            font-size: 13px;
-            opacity: 0.85;
-            line-height: 1.6;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        /* Services */
-        .services-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .service-item {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 15px;
-            padding: 18px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .service-item:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateX(10px);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .service-icon {
+        .car-price {
             font-size: 32px;
-            min-width: 40px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(168, 237, 234, 0.5);
         }
 
-        .service-content {
-            flex: 1;
+        .car-price-old {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: line-through;
+            font-weight: 600;
         }
 
-        .service-title {
-            font-weight: 700;
+        .add-to-cart-btn {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 20px;
             font-size: 16px;
-            margin-bottom: 5px;
-        }
-
-        .service-desc {
-            font-size: 13px;
-            opacity: 0.85;
-            line-height: 1.5;
-        }
-
-        /* Contact */
-        .contact-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .contact-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 15px;
-            padding: 15px 20px;
-            color: white;
-            text-decoration: none;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            cursor: pointer;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .contact-btn:hover {
+        .add-to-cart-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
             background: rgba(255, 255, 255, 0.3);
-            transform: translateX(5px);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
         }
 
-        .contact-icon {
-            font-size: 24px;
+        .add-to-cart-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+        }
+
+        .add-to-cart-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .add-to-cart-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Floating animation */
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
         }
 
         /* Scroll animations */
         @media (prefers-reduced-motion: no-preference) {
-            .section {
+            .car-card {
                 opacity: 0;
-                transform: translateY(30px);
-                transition: all 0.6s ease;
+                transform: translateY(40px);
+                transition: all 0.8s ease;
             }
             
-            .section.visible {
+            .car-card.visible {
                 opacity: 1;
                 transform: translateY(0);
             }
@@ -430,279 +345,71 @@
 
         /* Responsive */
         @media (max-width: 480px) {
-            .hero h1 {
-                font-size: 26px;
+            .header h1 {
+                font-size: 32px;
             }
-            
-            .stats-grid {
+
+            .car-name {
+                font-size: 22px;
+            }
+
+            .car-price {
+                font-size: 28px;
+            }
+
+            .car-specs {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        /* Particles effect */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: particle-float 15s infinite;
+        }
+
+        @keyframes particle-float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
             }
         }
     </style>
 </head>
 <body>
+    <div class="particles" id="particles"></div>
+    
     <div class="container">
-        <!-- Hero Section -->
-        <div class="hero">
-            <div class="avatar">🚗</div>
-            <h1>Александр Колосов</h1>
-            <div class="title">Автомобильный Разработчик</div>
-            <div class="tagline">
-                Создаю цифровые решения для автомобильной индустрии.<br>
-                Сайты автосалонов, боты для сервисов, приложения для дилеров.
-            </div>
+        <div class="header floating">
+            <h1>🚗 ПРЕМИУМ АВТОМОБИЛИ</h1>
+            <p>Эксклюзивная коллекция лучших автомобилей</p>
         </div>
 
-        <!-- Stats -->
-        <div class="section">
-            <div class="section-title">📊 Статистика</div>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number">30+</div>
-                    <div class="stat-label">Автомобильных проектов</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">5+</div>
-                    <div class="stat-label">Лет опыта</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">15+</div>
-                    <div class="stat-label">Автосалонов</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">Успешных проектов</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- About -->
-        <div class="section">
-            <div class="section-title">👋 О себе</div>
-            <div class="about-text">
-                Специализируюсь на разработке цифровых решений для автомобильной индустрии. 
-                Создаю современные сайты для автосалонов, Telegram-боты для автодилеров, 
-                системы управления автопарком и мобильные приложения для автомобильных сервисов. 
-                Помогаю бизнесу в автомобильной сфере автоматизировать продажи и улучшить клиентский опыт.
-            </div>
-        </div>
-
-        <!-- Skills -->
-        <div class="section">
-            <div class="section-title">🛠️ Технологии</div>
-            <div class="skill-item">
-                <div class="skill-header">
-                    <span>Telegram Bots для автосалонов</span>
-                    <span>98%</span>
-                </div>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: 98%"></div>
-                </div>
-            </div>
-            <div class="skill-item">
-                <div class="skill-header">
-                    <span>Веб-сайты автосалонов</span>
-                    <span>95%</span>
-                </div>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: 95%"></div>
-                </div>
-            </div>
-            <div class="skill-item">
-                <div class="skill-header">
-                    <span>CRM для автодилеров</span>
-                    <span>90%</span>
-                </div>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: 90%"></div>
-                </div>
-            </div>
-            <div class="skill-item">
-                <div class="skill-header">
-                    <span>Мобильные приложения</span>
-                    <span>85%</span>
-                </div>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: 85%"></div>
-                </div>
-            </div>
-            <div class="skill-item">
-                <div class="skill-header">
-                    <span>Интеграции с автокаталогами</span>
-                    <span>92%</span>
-                </div>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: 92%"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Portfolio - Example Cars -->
-        <div class="section">
-            <div class="section-title">🚗 Примеры работ</div>
-            <div class="cars-grid">
-                <div class="car-card">
-                    <div class="car-image-container">
-                        <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop" 
-                             alt="BMW M5" class="car-image"
-                             onerror="this.src='https://via.placeholder.com/800x600/667eea/ffffff?text=BMW+M5'">
-                        <div class="car-badge">Премиум</div>
-                    </div>
-                    <div class="car-info">
-                        <div class="car-header">
-                            <div class="car-name">BMW M5</div>
-                            <div class="car-year">2023</div>
-                        </div>
-                        <div class="car-specs">
-                            <span>⚙️ 4.4L V8</span>
-                            <span>💨 600 л.с.</span>
-                            <span>🔧 Автомат</span>
-                            <span>🚗 Полный</span>
-                        </div>
-                        <div class="car-description">
-                            <strong>Проект:</strong> Telegram-бот для автосалона BMW с каталогом, 
-                            бронированием тест-драйвов и интеграцией с CRM системой.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="car-card">
-                    <div class="car-image-container">
-                        <img src="https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop" 
-                             alt="Mercedes AMG GT" class="car-image"
-                             onerror="this.src='https://via.placeholder.com/800x600/667eea/ffffff?text=Mercedes+AMG'">
-                        <div class="car-badge">Новинка</div>
-                    </div>
-                    <div class="car-info">
-                        <div class="car-header">
-                            <div class="car-name">Mercedes-Benz AMG GT</div>
-                            <div class="car-year">2024</div>
-                        </div>
-                        <div class="car-specs">
-                            <span>⚙️ 4.0L V8</span>
-                            <span>💨 630 л.с.</span>
-                            <span>🔧 Автомат</span>
-                            <span>🚗 Задний</span>
-                        </div>
-                        <div class="car-description">
-                            <strong>Проект:</strong> Веб-сайт премиум автосалона с виртуальным туром, 
-                            онлайн-конфигуратором и системой онлайн-бронирования.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="car-card">
-                    <div class="car-image-container">
-                        <img src="https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=600&fit=crop" 
-                             alt="Audi RS6" class="car-image"
-                             onerror="this.src='https://via.placeholder.com/800x600/667eea/ffffff?text=Audi+RS6'">
-                        <div class="car-badge">Популярный</div>
-                    </div>
-                    <div class="car-info">
-                        <div class="car-header">
-                            <div class="car-name">Audi RS6</div>
-                            <div class="car-year">2023</div>
-                        </div>
-                        <div class="car-specs">
-                            <span>⚙️ 4.0L V8</span>
-                            <span>💨 600 л.с.</span>
-                            <span>🔧 Автомат</span>
-                            <span>🚗 Полный</span>
-                        </div>
-                        <div class="car-description">
-                            <strong>Проект:</strong> Мобильное приложение для автодилера с каталогом, 
-                            калькулятором кредита и системой уведомлений о новых поступлениях.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="car-card">
-                    <div class="car-image-container">
-                        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=600&fit=crop" 
-                             alt="Porsche 911" class="car-image"
-                             onerror="this.src='https://via.placeholder.com/800x600/667eea/ffffff?text=Porsche+911'">
-                        <div class="car-badge">Эксклюзив</div>
-                    </div>
-                    <div class="car-info">
-                        <div class="car-header">
-                            <div class="car-name">Porsche 911 Turbo</div>
-                            <div class="car-year">2024</div>
-                        </div>
-                        <div class="car-specs">
-                            <span>⚙️ 3.8L Flat-6</span>
-                            <span>💨 650 л.с.</span>
-                            <span>🔧 Автомат</span>
-                            <span>🚗 Полный</span>
-                        </div>
-                        <div class="car-description">
-                            <strong>Проект:</strong> CRM система для премиум автосалона с интеграцией 
-                            платежей, системой лояльности и аналитикой продаж.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Services -->
-        <div class="section">
-            <div class="section-title">✨ Услуги</div>
-            <div class="services-list">
-                <div class="service-item">
-                    <div class="service-icon">🤖</div>
-                    <div class="service-content">
-                        <div class="service-title">Telegram-боты для автосалонов</div>
-                        <div class="service-desc">Каталог автомобилей, бронирование тест-драйвов, уведомления о новых поступлениях, интеграция с CRM</div>
-                    </div>
-                </div>
-                <div class="service-item">
-                    <div class="service-icon">🌐</div>
-                    <div class="service-content">
-                        <div class="service-title">Веб-сайты автосалонов</div>
-                        <div class="service-desc">Современные сайты с каталогом, онлайн-конфигуратором, калькулятором кредита и виртуальными турами</div>
-                    </div>
-                </div>
-                <div class="service-item">
-                    <div class="service-icon">📱</div>
-                    <div class="service-content">
-                        <div class="service-title">Мобильные приложения</div>
-                        <div class="service-desc">iOS и Android приложения для автодилеров с push-уведомлениями и офлайн-режимом</div>
-                    </div>
-                </div>
-                <div class="service-item">
-                    <div class="service-icon">⚙️</div>
-                    <div class="service-content">
-                        <div class="service-title">Автоматизация процессов</div>
-                        <div class="service-desc">Интеграции с автокаталогами, синхронизация данных, автоматические отчеты и аналитика</div>
-                    </div>
-                </div>
-                <div class="service-item">
-                    <div class="service-icon">💼</div>
-                    <div class="service-content">
-                        <div class="service-title">CRM системы</div>
-                        <div class="service-desc">Управление клиентами, отслеживание сделок, система лояльности и маркетинговые инструменты</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Contact -->
-        <div class="section">
-            <div class="section-title">📞 Контакты</div>
-            <div class="contact-buttons">
-                <a href="https://t.me/your_username" class="contact-btn" onclick="tg.openTelegramLink('https://t.me/your_username'); return false;">
-                    <span class="contact-icon">💬</span>
-                    <span>Написать в Telegram</span>
-                </a>
-                <div class="contact-btn" onclick="tg.openLink('mailto:your.email@example.com'); return false;">
-                    <span class="contact-icon">📧</span>
-                    <span>Email: your.email@example.com</span>
-                </div>
-                <div class="contact-btn" onclick="tg.openLink('https://github.com/your_username'); return false;">
-                    <span class="contact-icon">💻</span>
-                    <span>GitHub профиль</span>
-                </div>
-            </div>
-        </div>
+        <div class="cars-grid" id="carsGrid"></div>
     </div>
 
     <script>
@@ -710,68 +417,187 @@
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
-        tg.enableClosingConfirmation();
+        tg.setHeaderColor('#0f0c29');
+        tg.setBackgroundColor('#0f0c29');
 
-        // Set theme colors
-        tg.setHeaderColor('#1e3c72');
-        tg.setBackgroundColor('#1e3c72');
+        // Create particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Car data
+        const cars = [
+            { 
+                id: 1, 
+                name: "BMW M5", 
+                year: 2023,
+                price: 89999.99,
+                oldPrice: 99999.99,
+                image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop",
+                badge: "Популярный",
+                specs: {
+                    engine: "4.4L V8",
+                    power: "600 л.с.",
+                    transmission: "Автомат",
+                    drive: "Полный"
+                }
+            },
+            { 
+                id: 2, 
+                name: "Mercedes-Benz AMG GT", 
+                year: 2024,
+                price: 129999.99,
+                oldPrice: null,
+                image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop",
+                badge: "Новинка",
+                specs: {
+                    engine: "4.0L V8",
+                    power: "630 л.с.",
+                    transmission: "Автомат",
+                    drive: "Задний"
+                }
+            },
+            { 
+                id: 3, 
+                name: "Audi RS6", 
+                year: 2023,
+                price: 109999.99,
+                oldPrice: 119999.99,
+                image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=600&fit=crop",
+                badge: "Скидка",
+                specs: {
+                    engine: "4.0L V8",
+                    power: "600 л.с.",
+                    transmission: "Автомат",
+                    drive: "Полный"
+                }
+            },
+            { 
+                id: 4, 
+                name: "Porsche 911 Turbo", 
+                year: 2024,
+                price: 199999.99,
+                oldPrice: null,
+                image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=600&fit=crop",
+                badge: "Премиум",
+                specs: {
+                    engine: "3.8L Flat-6",
+                    power: "650 л.с.",
+                    transmission: "Автомат",
+                    drive: "Полный"
+                }
+            }
+        ];
+
+        // Render cars
+        function renderCars() {
+            const carsGrid = document.getElementById('carsGrid');
+            carsGrid.innerHTML = '';
+
+            cars.forEach(car => {
+                const carCard = document.createElement('div');
+                carCard.className = 'car-card';
+                carCard.innerHTML = `
+                    <div class="car-image-container">
+                        <img src="${car.image}" alt="${car.name}" class="car-image"
+                             onerror="this.src='https://via.placeholder.com/800x600/667eea/ffffff?text=${encodeURIComponent(car.name)}'">
+                        ${car.badge ? `<div class="car-badge">${car.badge}</div>` : ''}
+                    </div>
+                    <div class="car-info">
+                        <div class="car-header">
+                            <div class="car-name">${car.name}</div>
+                            <div class="car-year">${car.year}</div>
+                        </div>
+                        <div class="car-specs">
+                            <div class="spec-item">
+                                <span class="spec-icon">⚙️</span>
+                                <span>${car.specs.engine}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-icon">💨</span>
+                                <span>${car.specs.power}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-icon">🔧</span>
+                                <span>${car.specs.transmission}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-icon">🚗</span>
+                                <span>${car.specs.drive}</span>
+                            </div>
+                        </div>
+                        <div class="car-price-section">
+                            <div class="price-container">
+                                <div class="car-price">$${car.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                                ${car.oldPrice ? `<div class="car-price-old">$${car.oldPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>` : ''}
+                            </div>
+                            <button class="add-to-cart-btn" onclick="addToCart(${car.id})">
+                                <span>➕ В корзину</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                carsGrid.appendChild(carCard);
+            });
+        }
+
+        // Cart functionality (simplified)
+        let cart = {};
+
+        function addToCart(carId) {
+            const car = cars.find(c => c.id === carId);
+            if (!car) return;
+
+            if (cart[carId]) {
+                cart[carId].quantity += 1;
+            } else {
+                cart[carId] = {
+                    id: carId,
+                    name: car.name,
+                    price: car.price,
+                    quantity: 1
+                };
+            }
+
+            // Haptic feedback
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+
+            // Show notification
+            tg.showAlert(`✅ ${car.name} добавлен в корзину!`);
+        }
 
         // Scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
                 }
             });
-        }, observerOptions);
-
-        document.querySelectorAll('.section').forEach(section => {
-            observer.observe(section);
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
         });
 
-        // Animate skill bars on scroll
-        const skillBars = document.querySelectorAll('.skill-progress');
-        const skillObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const width = entry.target.style.width;
-                    entry.target.style.width = '0%';
-                    setTimeout(() => {
-                        entry.target.style.width = width;
-                    }, 100);
-                }
+        // Initialize
+        createParticles();
+        renderCars();
+
+        // Observe car cards for animation
+        setTimeout(() => {
+            document.querySelectorAll('.car-card').forEach(card => {
+                observer.observe(card);
             });
-        }, { threshold: 0.5 });
-
-        skillBars.forEach(bar => {
-            skillObserver.observe(bar);
-        });
-
-        // Contact button handlers
-        document.querySelectorAll('.contact-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                const href = this.getAttribute('href');
-                if (href && href.startsWith('https://t.me/')) {
-                    tg.openTelegramLink(href);
-                } else if (href) {
-                    tg.openLink(href);
-                }
-            });
-        });
-
-        // Haptic feedback on interactions
-        document.querySelectorAll('.car-card, .service-item').forEach(item => {
-            item.addEventListener('click', () => {
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('light');
-                }
-            });
-        });
+        }, 100);
     </script>
 </body>
 </html>
