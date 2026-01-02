@@ -446,6 +446,123 @@
                 opacity: 0;
             }
         }
+
+        /* Debug Logs Panel */
+        .debug-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 12, 41, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            max-height: 50vh;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .debug-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .debug-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.2s;
+        }
+
+        .debug-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .debug-logs {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .debug-log-entry {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid rgba(255, 255, 255, 0.3);
+            word-break: break-word;
+        }
+
+        .debug-log-entry.info {
+            border-left-color: #4a9eff;
+            color: #a8d5ff;
+        }
+
+        .debug-log-entry.success {
+            border-left-color: #48bb78;
+            color: #9ae6b4;
+        }
+
+        .debug-log-entry.warning {
+            border-left-color: #ed8936;
+            color: #fbd38d;
+        }
+
+        .debug-log-entry.error {
+            border-left-color: #f56565;
+            color: #fc8181;
+        }
+
+        .debug-log-time {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 10px;
+            margin-right: 8px;
+        }
+
+        .debug-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+
+        .debug-toggle-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .debug-toggle-btn.active {
+            background: rgba(237, 137, 54, 0.9);
+        }
     </style>
 </head>
 <body>
@@ -459,6 +576,21 @@
 
         <div class="cars-grid" id="carsGrid"></div>
     </div>
+
+    <!-- Debug Logs Panel -->
+    <div id="debugPanel" class="debug-panel" style="display: none;">
+        <div class="debug-header">
+            <span>📋 Логи отладки</span>
+            <button type="button" id="clearLogsBtn" class="debug-btn">Очистить</button>
+            <button type="button" id="closeLogsBtn" class="debug-btn">✕</button>
+        </div>
+        <div id="debugLogs" class="debug-logs"></div>
+    </div>
+
+    <!-- Debug Toggle Button -->
+    <button type="button" id="debugToggleBtn" class="debug-toggle-btn" title="Показать логи">
+        📋
+    </button>
 
     <script>
         // Initialize Telegram WebApp
@@ -478,36 +610,84 @@
             tg.setBackgroundColor('#0f0c29');
         }
         
-        // API URL - определяется автоматически
+        // API URL - определяется автоматически или через параметр URL
         // Для локальной разработки используйте ngrok или другой туннель
         // Для продакшена API должен быть на том же домене или настроен CORS
         function getApiUrl() {
-            // Если открыто через Telegram, используем тот же домен
+            // 1. Проверяем параметр URL (приоритет)
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiUrlParam = urlParams.get('api_url');
+            if (apiUrlParam) {
+                console.log('API URL from URL parameter:', apiUrlParam);
+                return apiUrlParam;
+            }
+            
+            // 2. Проверяем localStorage (для постоянной настройки)
+            const savedApiUrl = localStorage.getItem('api_url');
+            if (savedApiUrl) {
+                console.log('API URL from localStorage:', savedApiUrl);
+                return savedApiUrl;
+            }
+            
+            // 3. Автоматическое определение
             const hostname = window.location.hostname;
             const protocol = window.location.protocol;
             
             // Для локальной разработки
+            // ВАЖНО: localhost не работает с телефона! Используйте ngrok
             if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                console.warn('⚠️ Используется localhost. Это НЕ будет работать с телефона!');
+                console.warn('Для тестирования с телефона используйте ngrok:');
+                console.warn('1. Запустите: ngrok http 8080');
+                console.warn('2. Добавьте параметр: ?api_url=https://your-ngrok-url.ngrok-free.app');
                 return 'http://localhost:8080';
             }
             
             // Для ngrok или других туннелей
-            // Если URL содержит ngrok, используем тот же домен
             if (hostname.includes('ngrok') || hostname.includes('ngrok-free')) {
                 return `${protocol}//${hostname}`;
             }
             
+            // Для Vercel и других хостингов - API обычно недоступен
+            // Используем fallback на sendData или укажите API URL вручную
+            if (hostname.includes('vercel.app') || hostname.includes('github.io')) {
+                // API не доступен на этих хостингах
+                // Нужно использовать ngrok или отдельный сервер
+                console.warn('API не доступен на этом хостинге. Используйте ngrok или укажите API URL.');
+                return null; // Вернет null, будет использован fallback
+            }
+            
             // Для продакшена - API на том же домене
             const origin = window.location.origin.replace(/\/$/, '');
-            
-            // ВАЖНО: Если API на другом домене, раскомментируйте и укажите:
-            // return 'https://your-api-domain.com';
-            
             return origin;
         }
         
-        const API_URL = getApiUrl();
-        console.log('API URL configured:', API_URL);
+        let API_URL = getApiUrl();
+        
+        // Проверяем, что URL полный (не относительный)
+        if (API_URL && !API_URL.startsWith('http://') && !API_URL.startsWith('https://')) {
+            console.error('❌ ОШИБКА: API URL должен быть полным (начинаться с http:// или https://)');
+            console.error('Текущий URL:', API_URL);
+            API_URL = null;
+        }
+        
+        // Убираем trailing slash если есть
+        if (API_URL) {
+            API_URL = API_URL.replace(/\/$/, '');
+        }
+        
+        // Если API URL не определен, используем fallback на sendData
+        const USE_API = API_URL !== null;
+        
+        if (!USE_API) {
+            addDebugLog('⚠️ API URL не настроен. Будет использован fallback на sendData.', 'warning');
+            addDebugLog('📋 Для настройки: добавьте ?api_url=https://your-api.com в URL', 'info');
+        } else {
+            addDebugLog(`✅ API URL: ${API_URL}`, 'success');
+            addDebugLog(`📡 Endpoints: POST ${API_URL}/api/add-to-cart`, 'info');
+        }
+        
+        addDebugLog(`Режим: ${USE_API ? 'API' : 'Fallback (sendData)'}`, USE_API ? 'success' : 'warning');
         
         // Debug: Check if tg is available
         console.log('Telegram WebApp initialized:', !!tg);
@@ -515,22 +695,109 @@
         
         // Setup MainButton
         if (tg && tg.MainButton) {
-            tg.MainButton.setText('🛒 Перейти в корзину');
-            tg.MainButton.onClick(() => {
-                // Close WebApp and let user see cart in bot
-                tg.close();
-            });
+            if (USE_API) {
+                tg.MainButton.setText('🛒 Перейти в корзину');
+                tg.MainButton.onClick(() => {
+                    // Close WebApp and let user see cart in bot
+                    tg.close();
+                });
+            } else {
+                // Fallback: отправка через sendData
+                tg.MainButton.setText('🛒 Отправить в корзину');
+                tg.MainButton.onClick(() => {
+                    sendCartViaSendData();
+                });
+            }
         }
         
+        // Fallback: добавление в локальную корзину и отправка через sendData
+        function addToCartFallback(carId) {
+            const car = cars.find(c => c.id === carId);
+            if (!car) return;
+
+            if (cart[carId]) {
+                cart[carId].quantity += 1;
+            } else {
+                cart[carId] = {
+                    id: carId,
+                    name: car.name,
+                    price: car.price,
+                    quantity: 1
+                };
+            }
+
+            // Haptic feedback
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+
+            // Show notification
+            if (tg && tg.showAlert) {
+                tg.showAlert(`✅ ${car.name} добавлен в корзину!`);
+            }
+            
+            // Update MainButton
+            const cartArray = Object.values(cart);
+            const totalItems = cartArray.reduce((sum, item) => sum + item.quantity, 0);
+            const total = cartArray.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            updateMainButton(total, totalItems);
+        }
+
+        // Отправка корзины через sendData (fallback)
+        function sendCartViaSendData() {
+            if (!tg || !tg.sendData) {
+                if (tg && tg.showAlert) {
+                    tg.showAlert('Ошибка: Telegram WebApp не доступен.');
+                }
+                return;
+            }
+
+            const cartArray = Object.values(cart);
+            if (cartArray.length === 0) {
+                if (tg && tg.showAlert) {
+                    tg.showAlert('Ваша корзина пуста!');
+                }
+                return;
+            }
+
+            const cartData = {
+                items: cartArray.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity
+                }))
+            };
+
+            try {
+                tg.sendData(JSON.stringify(cartData));
+                if (tg && tg.showAlert) {
+                    tg.showAlert('✅ Товары отправлены в корзину! Проверьте бота.');
+                }
+                // Clear local cart
+                cart = {};
+                updateMainButton(0, 0);
+            } catch (error) {
+                console.error('Error sending data:', error);
+                if (tg && tg.showAlert) {
+                    tg.showAlert('❌ Ошибка отправки данных.');
+                }
+            }
+        }
+
         // Load cart from server on page load
         async function loadCartFromServer() {
+            // Если API не настроен, пропускаем загрузку
+            if (!USE_API) {
+                addDebugLog('API не настроен - пропуск загрузки корзины', 'info');
+                return;
+            }
+            
             try {
                 if (!tg || !tg.initData) {
-                    console.log('No initData available - skipping cart load');
+                    addDebugLog('InitData недоступен - пропуск загрузки корзины', 'warning');
                     return;
                 }
                 
-                console.log(`Loading cart from: ${API_URL}/api/get-cart`);
+                addDebugLog(`📥 Загрузка корзины: ${API_URL}/api/get-cart`, 'info');
                 
                 const response = await fetch(`${API_URL}/api/get-cart`, {
                     method: 'GET',
@@ -541,11 +808,12 @@
                     }
                 });
                 
-                console.log('Cart load response status:', response.status);
+                addDebugLog(`Статус загрузки корзины: ${response.status}`, response.ok ? 'success' : 'error');
                 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('Error loading cart:', response.status, errorText.substring(0, 200));
+                    addDebugLog(`❌ Ошибка загрузки корзины: ${response.status}`, 'error');
+                    addDebugLog(`Детали: ${errorText.substring(0, 150)}`, 'error');
                     return;
                 }
                 
@@ -554,8 +822,7 @@
                 try {
                     data = JSON.parse(responseText);
                 } catch (jsonError) {
-                    console.error('Failed to parse cart JSON:', jsonError);
-                    console.error('Response was:', responseText.substring(0, 200));
+                    addDebugLog(`❌ Ошибка парсинга корзины: ${jsonError.message}`, 'error');
                     return;
                 }
                 
@@ -571,11 +838,12 @@
                         };
                     });
                     updateMainButton(data.total, data.itemsCount);
-                    console.log('Cart loaded:', data.itemsCount, 'items');
+                    addDebugLog(`✅ Корзина загружена: ${data.itemsCount} товаров на $${data.total.toFixed(2)}`, 'success');
+                } else {
+                    addDebugLog('Корзина пуста', 'info');
                 }
             } catch (error) {
-                console.error('Error loading cart:', error);
-                console.error('Error details:', error.message, error.stack);
+                addDebugLog(`❌ Ошибка загрузки корзины: ${error.message}`, 'error');
             }
         }
         
@@ -733,6 +1001,12 @@
                 tg.HapticFeedback.impactOccurred('medium');
             }
 
+            // Если API не настроен, используем fallback
+            if (!USE_API) {
+                addToCartFallback(carId);
+                return;
+            }
+
             try {
                 // Send to API
                 if (!tg || !tg.initData) {
@@ -743,8 +1017,8 @@
                     return;
                 }
 
-                console.log(`Sending request to: ${API_URL}/api/add-to-cart`);
-                console.log('InitData available:', !!tg.initData);
+                addDebugLog(`📤 Отправка запроса: ${API_URL}/api/add-to-cart`, 'info');
+                addDebugLog(`InitData: ${tg.initData ? 'доступен' : 'недоступен'}`, tg.initData ? 'success' : 'warning');
 
                 const response = await fetch(`${API_URL}/api/add-to-cart`, {
                     method: 'POST',
@@ -760,16 +1034,16 @@
                     })
                 });
 
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
-
+                addDebugLog(`📥 Статус ответа: ${response.status}`, response.ok ? 'success' : 'error');
+                
                 // Сначала читаем как текст, чтобы увидеть реальный ответ
                 const responseText = await response.text();
-                console.log('Response text:', responseText.substring(0, 200));
+                addDebugLog(`Ответ сервера: ${responseText.substring(0, 150)}...`, 'info');
 
                 if (!response.ok) {
                     // Сервер вернул ошибку (404, 500 и т.д.)
-                    console.error('Server error:', response.status, responseText);
+                    addDebugLog(`❌ Ошибка сервера: ${response.status}`, 'error');
+                    addDebugLog(`Детали: ${responseText.substring(0, 200)}`, 'error');
                     
                     let errorMessage = `Ошибка сервера: ${response.status}`;
                     if (response.status === 404) {
@@ -792,9 +1066,10 @@
                 let data;
                 try {
                     data = JSON.parse(responseText);
+                    addDebugLog('✅ JSON успешно распарсен', 'success');
                 } catch (jsonError) {
-                    console.error('Failed to parse JSON:', jsonError);
-                    console.error('Response was:', responseText);
+                    addDebugLog(`❌ Ошибка парсинга JSON: ${jsonError.message}`, 'error');
+                    addDebugLog(`Ответ был: ${responseText.substring(0, 200)}`, 'error');
                     if (tg && tg.showAlert) {
                         tg.showAlert('❌ Сервер вернул неверный формат данных. Проверьте API.');
                     } else {
@@ -816,23 +1091,24 @@
                         };
                     }
                     
-                    // Update MainButton
-                    updateMainButton(data.cartTotal, data.itemsCount);
-                    
-                    // Show notification
-                    if (tg && tg.showAlert) {
-                        tg.showAlert(`✅ ${car.name} добавлен в корзину!`);
-                    }
+                        // Update MainButton
+                        updateMainButton(data.cartTotal, data.itemsCount);
+                        
+                        addDebugLog(`✅ Товар добавлен: ${car.name}`, 'success');
+                        addDebugLog(`Корзина: ${data.itemsCount} товаров, сумма: $${data.cartTotal.toFixed(2)}`, 'info');
+                        
+                        // Show notification
+                        if (tg && tg.showAlert) {
+                            tg.showAlert(`✅ ${car.name} добавлен в корзину!`);
+                        }
                 } else {
                     throw new Error(data.error || 'Unknown error');
                 }
             } catch (error) {
-                console.error('Error adding to cart:', error);
-                console.error('Error details:', {
-                    message: error.message,
-                    stack: error.stack,
-                    name: error.name
-                });
+                addDebugLog(`❌ Ошибка: ${error.message}`, 'error');
+                if (error.stack) {
+                    addDebugLog(`Stack: ${error.stack.substring(0, 200)}`, 'error');
+                }
                 
                 let errorMessage = error.message || 'Неизвестная ошибка';
                 if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
@@ -875,3 +1151,4 @@
     </script>
 </body>
 </html>
+
